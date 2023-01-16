@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "NeuralNetProject", "NeuralNetProject.pyproj", "{F7E1A448-F823-4F1D-AB63-6D011A0F39D4}"
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "deeplearning", "deeplearning.pyproj", "{B143FC75-CA7B-4308-BF7D-6FC45A7CBD64}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,13 +11,13 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{F7E1A448-F823-4F1D-AB63-6D011A0F39D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F7E1A448-F823-4F1D-AB63-6D011A0F39D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B143FC75-CA7B-4308-BF7D-6FC45A7CBD64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B143FC75-CA7B-4308-BF7D-6FC45A7CBD64}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {C84445E6-67CE-45C9-A7C2-04260CE82D86}
+		SolutionGuid = {164FF07F-FFAF-4375-B5C6-BA39A62A499E}
 	EndGlobalSection
 EndGlobal

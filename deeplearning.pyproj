@@ -2,15 +2,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>f7e1a448-f823-4f1d-ab63-6d011a0f39d4</ProjectGuid>
+    <ProjectGuid>b143fc75-ca7b-4308-bf7d-6fc45a7cbd64</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>NeuralNetProject.py</StartupFile>
-    <SearchPath>..\NeuralNetProject</SearchPath>
+    <StartupFile>
+    </StartupFile>
+    <SearchPath>
+    </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>NeuralNetSampleProjectPython</Name>
-    <RootNamespace>NeuralNetSampleProjectPython</RootNamespace>
-    <InterpreterId>Global|PythonCore|3.9</InterpreterId>
+    <Name>deeplearning</Name>
+    <RootNamespace>deeplearning</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,11 +22,13 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="deeplearning.py" />
-    <Compile Include="NeuralNetProject.py" />
+    <Folder Include="deeplearning\" />
   </ItemGroup>
   <ItemGroup>
-    <InterpreterReference Include="Global|PythonCore|3.9" />
+    <Compile Include="deeplearning\deeplearning.py" />
+    <Compile Include="deeplearning\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

@@ -161,3 +161,4 @@ class NeuralLayer:
             return self._dot_product_deriv()
         if self.activation_type == 3:
             return self._tanh_deriv(input_array)
+
