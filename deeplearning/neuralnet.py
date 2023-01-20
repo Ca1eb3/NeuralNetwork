@@ -2,19 +2,30 @@
 # 01/13/2023
 from matplotlib import pyplot as plt
 import numpy as np
-import math
 from enum import Enum
 
-class ActivationFunction(Enum):
+class activationfunction(Enum):
     SIGMOID = 1
     DOTPRODUCT = 2
     TANH = 3
 
-class NeuralNetwork:
-    def __init__(self, learning_rate, neural_layers):
-        self.bias = np.random.randn()
+class neuralnetwork:
+    def __init__(self, learning_rate, neural_layers, bias:float = np.random.randn(), layer_weights = None):
+        self.bias = bias
         self.learning_rate = learning_rate
         self.neural_layers = np.array(neural_layers)
+        self.set_layer_weights(layer_weights)
+
+    def get_layer_weights(self):
+        layer_weights = []
+        for i in range(0, len(self.neural_layers)):
+            layer_weights.append(self.neural_layers[i].weights)
+        return layer_weights
+
+    def set_layer_weights(self, layer_weights):
+        if (layer_weights != None):
+            for i in range(0, len(self.neural_layers)):
+                self.neural_layers.weights = layer_weights[i]
 
     def predict(self, input_vector):
         prediction = self.neural_layers[0]._layer_activation(input_vector)
@@ -112,7 +123,7 @@ class NeuralNetwork:
 
         return cumulative_errors
 
-class NeuralLayer:
+class neurallayer:
     def __init__(self, activation_type, input_size):
         list_weights = []
         for i in range(0, input_size):

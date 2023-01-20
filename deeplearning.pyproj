@@ -25,7 +25,11 @@
     <Folder Include="deeplearning\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="deeplearning\deeplearning.py" />
+    <Compile Include="deeplearning\neuralnet.py" />
+    <Compile Include="deeplearning\neuralnetbuilder.py" />
+    <Compile Include="deeplearning\setup.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="deeplearning\__init__.py">
       <SubType>Code</SubType>
     </Compile>
