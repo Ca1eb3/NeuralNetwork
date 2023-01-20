@@ -23,9 +23,6 @@ class neuralnetbuilder:
     def build(self):
         return neuralnet.neuralnetwork(self.learning_rate, self.neural_layers)
 
- #   def build_trained(self):
- #       return neuralnet.neuralnetwork(self.learning_rate, self.neural_layers, self.bias, self.layer_weights)
-
 class neurallayerbuilder:
     def __init__(self):
         self.activation_type = None
