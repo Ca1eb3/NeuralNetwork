@@ -1,9 +1,6 @@
 # Caleb Smith
 # 01/19/2023
-
-from deeplearning import neuralnet
-
-
+import neuralnet
 class neuralnetbuilder:
     def __init__(self):
         self.bias = None
