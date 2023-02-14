@@ -1,175 +1,238 @@
 # Caleb Smith
-# 01/13/2023
-from matplotlib import pyplot as plt
+# 02/03/2023
 import numpy as np
 from enum import Enum
 
-class activationfunction(Enum):
+class LayerType(Enum):
+    INPUT = 1
+    HIDDEN = 2
+    OUTPUT = 3
+
+class ActivationFunction(Enum):
+    NONE = 0
     SIGMOID = 1
-    DOTPRODUCT = 2
-    TANH = 3
+    TANH = 2
 
-class neuralnetwork:
-    def __init__(self, learning_rate, neural_layers, bias:float = np.random.randn(), layer_weights = None):
-        self.bias = bias
+class neuron:
+    # each neuron has a value, input and output edges, and a bias
+    def __init__(self):
+        self.value = None
+        self.value_activated = None
+        self.value_activated_deriv = None
+        self.node_deriv = None
+        self.in_edges = []
+        self.out_edges = []
+        self.bias = np.random.randn()
+        self.bias_error = None
+        
+    def delete_neuron(self):
+        for i in range(self.in_edges):
+            self.in_edges[i].delete_edge()
+        self.in_edges.clear()
+        for i in range(self.out_edges):
+            self.out_edges[i].delete_edge()
+        self.out_edges.clear()
+
+    def update_value(self, value):
+        self.value = value
+
+class edge:
+    # each edge defines a weighted relationship between an input and output node
+    def __init__(self, input_node, output_node):
+        self.input_node = input_node
+        self.output_node = output_node
+        self.weight = np.random.randn()
+        self.weight_error = None
+
+    def delete_edge(self):
+        self.input_node.out_edges.remove(self)
+        if (len(self.input_node.out_edges) == 0):
+            self.input_node.delete_neuron
+        self.output_node.in_edges.remove(self)
+        if (len(self.output_node.in_edges) == 0):
+            self.output_node.delete_neuron
+        self.input_node = None
+        self.output_node = None
+        
+    def set_node_edges(self):
+        self.input_node.out_edges.append(self)
+        self.output_node.in_edges.append(self)
+
+    def update_weight(self, weight):
+        self.weight = weight
+
+class neural_layer:
+    # each neural layer has an array of neurons, a layer type, and an activation type and is responsible for activating its nodes
+    def __init__(self, activation_type, neurons, layer_type=LayerType.HIDDEN):
+        self.activation_type = activation_type
+        self.neurons = neurons
+        self.layer_type = layer_type
+
+    def sigmoid(self, x):
+        # 1/(1 + np.exp(-x)) or 1/(1 + e^-x)
+        x = 1 / (1 + np.exp(-x))
+        return x
+
+    def sigmoid_deriv(self, x):
+        # (1/(1 + np.exp(-x))) * (1 - (1/(1 + np.exp(-x)))) or (1/(1 + e^-x)) * (1 - (1/(1 + e^-x)))
+        x = self.sigmoid(x) * (1 - self.sigmoid(x))
+        return x
+
+    def tanh(self, x):
+        # (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x)) or (e^x – e^-x) / (e^x + e^-x)
+        x = (np.exp(x) - np.exp(-x))/(np.exp(x) + np.exp(-x))
+        return x
+
+    def tanh_deriv(self, x):
+        # 1 - (_tanh(x) ** 2) or 1 - tanh^2(x)
+        x = 1 - (self.tanh(x) ** 2)
+        return x
+
+    def layer_activation(self):
+        if self.activation_type == 0:
+            return
+        if self.activation_type == 1:
+            for i in range(len(self.neurons)):
+                self.neurons[i].value_activated = self.sigmoid(self.neurons[i].value)
+            return
+        if self.activation_type == 2:
+            for i in range(len(self.neurons)):
+                self.neurons[i].value_activated = self.tanh(self.neurons[i].value)
+            return
+
+    def layer_deriv(self):
+        layer_derivative = neural_layer(self.activation_type, self.neurons, self.layer_type)
+        if self.activation_type == 0:
+            return
+        if self.activation_type == 1:
+            for i in range(len(self.neurons)):
+                layer_derivative.neurons[i].value_activated_deriv = self.sigmoid_deriv(self.neurons[i].value)
+            return
+        if self.activation_type == 2:
+            for i in range(len(self.neurons)):
+                layer_derivative.neurons[i].value_activated_deriv = self.tanh_deriv(self.neurons[i].value)
+            return
+
+
+class neural_network:
+    # each neural network has an array of neural layers and is responsible for training and making predictions
+    def __init__(self, neural_layers, learning_rate):
+        self.neural_layers = neural_layers
+        self.output_layer = neural_layers[len(neural_layers) - 1]
         self.learning_rate = learning_rate
-        self.neural_layers = np.array(neural_layers)
-        self.set_layer_weights(layer_weights)
-
-    def get_layer_weights(self):
-        layer_weights = []
-        for i in range(0, len(self.neural_layers)):
-            layer_weights.append(self.neural_layers[i].weights)
-        return layer_weights
-
-    def set_layer_weights(self, layer_weights):
-        if (layer_weights != None):
-            for i in range(0, len(self.neural_layers)):
-                self.neural_layers.weights = layer_weights[i]
 
     def predict(self, input_vector):
-        prediction = self.neural_layers[0]._layer_activation(input_vector)
-        for i in range(0, len(prediction)):
-            prediction[i] = prediction[i] + self.bias
+        # activate layer by layer using activation functions, and a weighted sum of inputs and a bias to predict the output layer
+        # index 0 is the input layer so start at first hidden layer
+        self.set_input_layer(input_vector)
+        value = 0
         for i in range(1, len(self.neural_layers)):
-            prediction = self.neural_layers[i]._layer_activation(prediction)
+            for j in range(len(self.neural_layers[i].neurons)):
+                for k in range(len(self.neural_layers[i].neurons[j].in_edges)):
+                    value += self.neural_layers[i].neurons[j].in_edges[k].weight * self.neural_layers[i].neurons[j].in_edges[k].input_node.value
+                self.neural_layers[i].neurons[j].value = value + self.neural_layers[i].neurons[j].bias
+                value = 0
+            self.neural_layers[i].layer_activation()
+        prediction = []
+        for i in range(len(self.output_layer.neurons)):
+            prediction.append(self.output_layer.neurons[i].value_activated)
         return prediction
 
-    def _compute_gradients(self, input_vector, target):
-        derror_dweights = []
-        layer_prediction = []
-        prediction = self.neural_layers[0]._layer_activation(input_vector)
-        for i in range(0, len(prediction)):
-            prediction[i] = prediction[i] + self.bias
-        prediction = np.array(prediction)
-        layer_prediction.append(prediction)
-        for i in range(1, len(self.neural_layers)):
-            prediction = self.neural_layers[i]._layer_activation(prediction)
-            prediction = np.array(prediction)
-            layer_prediction.append(prediction)
-        layer_prediction = np.array(layer_prediction)
-
-        # determine error in prediction
-        derror_dprediction = 2 * (prediction - target)
-
-        # calculate derivative of bias and weights for input layer
-        dprediction_dlayer1 = self.neural_layers[0]._layer_deriv(layer_prediction[0])
-        dlayer1_dbias = 1
-        dlayer1_dweights = (0 * self.neural_layers[0].weights) + (1 * input_vector)
-        derror_dbias = (
-            derror_dprediction * dprediction_dlayer1 * dlayer1_dbias
-        )
-        derror_dweights_layer1 = (
-            derror_dprediction * dprediction_dlayer1 * dlayer1_dweights
-        )
-        derror_dweights.append(derror_dweights_layer1)
-
-        # calculate derivative of weights for hidden layers
-        for i in range(1, len(self.neural_layers) - 1):
-             dprediction_dlayer = self.neural_layers[i]._layer_deriv(layer_prediction[i])
-             dlayer_dweights = (0 * self.neural_layers[i].weights) + (1 * input_vector)
-             derror_dweights_layer = (
-                    derror_dprediction * dprediction_dlayer * dlayer_dweights
-             )
-             derror_dweights.append(derror_dweights_layer)
-
-        # calculate derivative of weights for output layer
-        dprediction_dlayer_final = self.neural_layers[len(self.neural_layers) - 1]._layer_deriv(layer_prediction[len(self.neural_layers) - 1])
-        dlayer_final_dweights = (0 * self.neural_layers[len(self.neural_layers) - 1].weights) + (1 * input_vector)
-        derror_dweights_layer_final = (
-             derror_dprediction * dprediction_dlayer_final * dlayer_final_dweights
-        )
-        derror_dweights.append(derror_dweights_layer_final)
-        
-        return derror_dbias, derror_dweights
-
-
-    def _update_parameters(self, derror_dbias, derror_dweights):
-        self.bias = self.bias - (derror_dbias * self.learning_rate)
-        for i in range(0, len(derror_dweights)):
-            self.neural_layers[i].weights = self.neural_layers[i].weights - ( 
-                derror_dweights[i] * self.learning_rate 
-            )
+    def set_input_layer(self, input_vector):
+        # takes an ordered set of input vectors and sets the input layer values
+        for i in range(len(self.neural_layers[0].neurons)):
+            self.neural_layers[0].neurons[i].value = input_vector[i]
+            self.neural_layers[0].neurons[i].value_activated = input_vector[i]
 
     def train(self, input_vectors, targets, iterations):
+        # adjust weights and biases then attempts to prune/grow the network
         cumulative_errors = []
-        for current_iteration in range(iterations):
-            # Pick a data instance at random
+        while (iterations > 0):
+            # pick test data at random from the given test set
             random_data_index = np.random.randint(len(input_vectors))
-
             input_vector = input_vectors[random_data_index]
             target = targets[random_data_index]
 
             # Compute the gradients and update the weights
-            derror_dbias, derror_dweights = self._compute_gradients(
-                input_vector, target
-            )
-
-            self._update_parameters(derror_dbias, derror_dweights)
+            weights = self.back_propagation(input_vector, target)
 
             # Measure the cumulative error for all the instances
-            if current_iteration % 100 == 0:
-                cumulative_error = 0
-                # Loop through all the instances to measure the error
-                for data_instance_index in range(len(input_vectors)):
-                    data_point = input_vectors[data_instance_index]
-                    target = targets[data_instance_index]
-
-                    prediction = self.predict(data_point)
-                    error = np.square(prediction - target)
-
-                    cumulative_error = cumulative_error + error
-                cumulative_errors.append(cumulative_error)
-
+            if iterations % 100 == 0:
+                cumulative_error = []
+                for i in range(len(input_vectors)):
+                    prediction = self.predict(input_vectors[i])
+                    error = self.mean_squared_error(targets[i], prediction)
+                    cumulative_error.append(error)
+                cumulative_errors.append(np.sum(cumulative_error)/len(cumulative_error))
+            iterations -= 1
         return cumulative_errors
 
-class neurallayer:
-    def __init__(self, activation_type, input_size):
-        list_weights = []
-        for i in range(0, input_size):
-            list_weights.append(np.random.randn())
-        self.weights = np.array(list_weights)
-        self.activation_type = activation_type
+    def back_propagation(self, input_vector, target):
+        # weights array to be used in pruning and growth algorithm
+        weights = []
+        # forward pass
+        output = self.predict(input_vector)
+        # calculate loss gradient (derivative of the loss function)
+        # loss function = mean squared error
+        error_deriv = 2 * (output[0] - target[0])
 
-    def _sigmoid(self, input_array):
-        for x in range(0, len(input_array)):
-            input_array[x] = 1 / (1 + np.exp(-input_array[x]))
-        return input_array
+        # calculate layer weights and biases for output layer
+        cur_layer = self.output_layer
+        cur_neuron = None
+        cur_layer.layer_deriv()
+        for i in range(len(cur_layer.neurons)):
+            cur_neuron = cur_layer.neurons[i]
+            # calculate derivative with respect to the node and gradient with respect to bias
+            cur_neuron.node_deriv = error_deriv * cur_neuron.value_activated_deriv
+            cur_neuron.bias_error = cur_neuron.node_deriv
+            self.update_bias(cur_neuron)
+            # calculate gradient with respect to weight for each input edge of the current node
+            for j in range(len(cur_neuron.in_edges)):
+                cur_edge = cur_neuron.in_edges[j]
+                cur_edge.weight_error = cur_neuron.node_deriv * cur_edge.input_node.value_activated
+                self.update_weight(cur_edge)
+                weights.append(cur_edge.weight)
 
-    def _sigmoid_deriv(self, input_array):
-        for x in range(0, len(input_array)):
-            input_array[x] = self._sigmoid(np.array([input_array[x]])) * (1 - self._sigmoid(np.array([input_array[x]])))
-        return np.array([input_array])
+        # calculate layer weights and biases for hidden layers
+        index = 2
+        cur_layer = self.neural_layers[len(self.neural_layers) - index]
+        while (cur_layer.layer_type != 1):
+            cur_layer.layer_deriv()
+            for i in range(len(cur_layer.neurons)):
+                cur_neuron = cur_layer.neurons[i]
+                # get weights and derivatives from previous layer calculations
+                node_out_weights = []
+                node_out_derivs = []
+                for j in range(len(cur_neuron.out_edges)):
+                    cur_edge = cur_neuron.out_edges[j]
+                    node_out_weights.append(cur_edge.weight)
+                    node_out_derivs.append(cur_edge.output_node.node_deriv)
+                # calculate derivative with respect to the node and gradient with respect to bias
+                cur_neuron.node_deriv = np.dot(node_out_weights, node_out_derivs) * cur_neuron.value_activated_deriv
+                cur_neuron.bias_error = cur_neuron.node_deriv
+                self.update_bias(cur_neuron)
+                # calculate gradient with respect to weight for each input edge of the current node
+                for j in range(len(cur_neuron.in_edges)):
+                    cur_edge = cur_neuron.in_edges[j]
+                    cur_edge.weight_error = cur_neuron.node_deriv * cur_edge.input_node.value_activated
+                    self.update_weight(cur_edge)
+                    weights.append(cur_edge.weight)
+            index += 1
+            cur_layer = self.neural_layers[len(self.neural_layers) - index]
+        return weights
 
-    def _dot_product(self, input_array):
-        return np.array([np.dot(input_array, self.weights)])
+    def squared_error(self, target, prediction):
+        return (target - prediction) ** 2
 
-    def _dot_product_deriv(self):
-        return np.array(1)
+    def mean_squared_error(self, target, prediction):
+        error = 0
+        for i in range(len(target)):
+            error += self.squared_error(target[i], prediction[i])
+        error = error / len(target)
+        return error
 
-    def _tanh(self, input_array):
-        for x in range(0, len(input_array)):
-            input_array[x] = (np.exp(input_array[x])-np.exp(-input_array[x]))/(np.exp(input_array[x])+np.exp(-input_array[x]))
-        return input_array
+    def update_bias(self, neuron):
+        neuron.bias = neuron.bias - (neuron.bias_error * self.learning_rate)
 
-    def _tanh_deriv(self, input_array):
-        for x in range(0, len(input_array)):
-            input_array[x] = 1 - (self._tanh(np.array([input_array[x]])) ** 2)
-        return input_array
-
-    def _layer_activation(self, input_array):
-        if self.activation_type == 1:
-            return self._sigmoid(input_array)
-        if self.activation_type == 2:
-            return self._dot_product(input_array)
-        if self.activation_type == 3:
-            return self._tanh(input_array)
-
-    def _layer_deriv(self, input_array):
-        if self.activation_type == 1:
-            return self._sigmoid_deriv(input_array)
-        if self.activation_type == 2:
-            return self._dot_product_deriv()
-        if self.activation_type == 3:
-            return self._tanh_deriv(input_array)
-
+    def update_weight(self, edge):
+        edge.weight = edge.weight - (edge.weight_error * self.learning_rate)
