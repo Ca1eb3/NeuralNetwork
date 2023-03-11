@@ -9,7 +9,7 @@ class neuralnetbuilder:
     def set_learning_rate(self, learning_rate):
         self.learning_rate = learning_rate
 
-    def set_neural_layers(self, num_nodes_input_layer, num_nodes_output_layer, num_hidden_layers, hidden_layer_activation_types, output_layer_activation_type):
+    def set_neural_layers(self, num_nodes_input_layer, num_nodes_output_layer, num_hidden_layers, num_nodes_hidden_layers, hidden_layer_activation_types, output_layer_activation_type):
         # build input layer
         neurons = []
         for i in range(num_nodes_input_layer):
@@ -25,8 +25,9 @@ class neuralnetbuilder:
         neurons.clear()
         for i in range(num_hidden_layers):
             hidden_layer = neurallayerbuilder()
-            neuron = neuronbuilder().build()
-            neurons.append(neuron)
+            for j in range(num_nodes_hidden_layers[i]):
+                neuron = neuronbuilder().build()
+                neurons.append(neuron)
             hidden_layer.set_neurons(neurons)
             hidden_layer.set_activation_type(hidden_layer_activation_types[i])
             hidden_layer.set_layer_type(2)
