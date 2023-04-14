@@ -236,3 +236,35 @@ class neural_network:
 
     def update_weight(self, edge):
         edge.weight = edge.weight - (edge.weight_error * self.learning_rate)
+
+    def save_model_data(self):
+        bias_values = []
+        weight_values = []
+        for i in range(len(self.neural_layers)):
+            bias_values_layer = []
+            weight_values_layer = []
+            for j in range(len(self.neural_layers[i].neurons)):
+                if (self.neural_layers[i].layer_type != 1):
+                    bias_values_layer.append(self.neural_layers[i].neurons[j].bias)
+                if (self.neural_layers[i].layer_type != 3):
+                    weight_values_node = []
+                    for k in range(len(self.neural_layers[i].neurons[j].out_edges)):
+                        weight_values_node.append(self.neural_layers[i].neurons[j].out_edges[k].weight)
+                    weight_values_layer.append(weight_values_node.copy())
+                    weight_values_node.clear()
+            if len(bias_values_layer) > 0:
+                bias_values.append(bias_values_layer.copy())
+                bias_values_layer.clear()
+            if len(weight_values_layer) > 0:
+                weight_values.append(weight_values_layer.copy())
+                weight_values_layer.clear()
+        return bias_values, weight_values
+
+    def set_model_data(self, bias_values, weight_values):
+        for i in range(len(self.neural_layers)):
+            for j in range(len(self.neural_layers[i].neurons)):
+                if (self.neural_layers[i].layer_type != 1):
+                    self.neural_layers[i].neurons[j].bias = bias_values[i - 1][j]
+                if (self.neural_layers[i].layer_type != 3):
+                    for k in range(len(self.neural_layers[i].neurons[j].out_edges)):
+                        self.neural_layers[i].neurons[j].out_edges[k].weight = weight_values[i][j][k]

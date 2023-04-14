@@ -9,50 +9,49 @@ class neuralnetbuilder:
     def set_learning_rate(self, learning_rate):
         self.learning_rate = learning_rate
 
-    def set_neural_layers(self, num_nodes_input_layer, num_nodes_output_layer, num_hidden_layers, num_nodes_hidden_layers, hidden_layer_activation_types, output_layer_activation_type):
-        # build input layer
-        neurons = []
-        for i in range(num_nodes_input_layer):
-            neuron = neuronbuilder().build()
-            neurons.append(neuron)
-        input_layer = neurallayerbuilder()
-        input_layer.set_neurons(neurons)
-        input_layer.set_activation_type(0)
-        input_layer.set_layer_type(1)
-        self.neural_layers.append(input_layer.build())
-        
-        # build hidden layers
-        neurons.clear()
-        for i in range(num_hidden_layers):
-            hidden_layer = neurallayerbuilder()
-            for j in range(num_nodes_hidden_layers[i]):
+    def set_neural_layers(self, num_layers, num_nodes_layers, layer_activation_types):
+        neurons_cur = []
+        for i in range(num_layers):
+            for j in range(num_nodes_layers[i]):
                 neuron = neuronbuilder().build()
-                neurons.append(neuron)
-            hidden_layer.set_neurons(neurons)
-            hidden_layer.set_activation_type(hidden_layer_activation_types[i])
-            hidden_layer.set_layer_type(2)
-            self.neural_layers.append(hidden_layer.build())
-            for j in range(len(self.neural_layers[i].neurons)):
-                edge = edgebuilder()
-                edge.set_input_node(self.neural_layers[i].neurons[j])
-                edge.set_output_node(self.neural_layers[i + 1].neurons[0])
-                edge.build()  
-            neurons.clear()
-
-        # build output layer
-        for i in range(num_nodes_output_layer):
-            neuron = neuronbuilder().build()
-            neurons.append(neuron)
-        output_layer = neurallayerbuilder()
-        output_layer.set_neurons(neurons)
-        output_layer.set_activation_type(output_layer_activation_type)
-        output_layer.set_layer_type(3)
-        self.neural_layers.append(output_layer.build())
-        for i in range(len(self.neural_layers[len(self.neural_layers) - 1].neurons)):
-            edge = edgebuilder()
-            edge.set_input_node(self.neural_layers[len(self.neural_layers) - 2].neurons[0])
-            edge.set_output_node(self.neural_layers[len(self.neural_layers) - 1].neurons[i])
-            edge.build()
+                neurons_cur.append(neuron)
+            if i == 0:
+                input_layer = neurallayerbuilder()
+                input_layer.set_activation_type(layer_activation_types[i])
+                input_layer.set_layer_type(1)
+                input_layer.set_neurons(neurons_cur.copy())
+                self.neural_layers.append(input_layer.build())
+                neurons_cur.clear()
+            elif i == num_layers - 1:
+                output_layer = neurallayerbuilder()
+                output_layer.set_activation_type(layer_activation_types[i])
+                output_layer.set_layer_type(3)
+                output_layer.set_neurons(neurons_cur.copy())
+                self.neural_layers.append(output_layer.build())
+                neurons_cur.clear()
+                for j in range(len(self.neural_layers[i].neurons)):
+                    for k in range(len(self.neural_layers[i - 1].neurons)):
+                        #self.neural_layers[i].neurons[j] # output node
+                        #self.neural_layers[i - 1].neurons[k] # input node
+                        edge = edgebuilder()
+                        edge.set_input_node(self.neural_layers[i - 1].neurons[k])
+                        edge.set_output_node(self.neural_layers[i].neurons[j])
+                        edge.build()
+            else:
+                hidden_layer = neurallayerbuilder()
+                hidden_layer.set_activation_type(layer_activation_types[i])
+                hidden_layer.set_layer_type(2)
+                hidden_layer.set_neurons(neurons_cur.copy())
+                self.neural_layers.append(hidden_layer.build())
+                neurons_cur.clear()
+                for j in range(len(self.neural_layers[i].neurons)):
+                    for k in range(len(self.neural_layers[i - 1].neurons)):
+                        #self.neural_layers[i].neurons[j] # output node
+                        #self.neural_layers[i - 1].neurons[k] # input node
+                        edge = edgebuilder()
+                        edge.set_input_node(self.neural_layers[i - 1].neurons[k])
+                        edge.set_output_node(self.neural_layers[i].neurons[j])
+                        edge.build()  
 
     def build(self):
         return dl.neural_network(self.neural_layers, self.learning_rate)
